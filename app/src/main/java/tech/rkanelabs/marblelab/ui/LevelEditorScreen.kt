@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -17,6 +18,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableFloatStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -24,7 +26,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.layout.positionInParent
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -61,32 +65,37 @@ fun LevelEditorGrid(
 ) {
     val paintedDuringDrag = remember { mutableSetOf<Pair<Int, Int>>() }
     var cellSizePx by remember { mutableFloatStateOf(0f) }
+    var gridOffset by remember { mutableStateOf(Offset.Zero) }
 
     Box(
         modifier = modifier
-            .pointerInput(uiState.tiles) {
+            .pointerInput(Unit) {
                 detectDragGestures(
                     onDragStart = { offset ->
                         paintedDuringDrag.clear()
-                        val cell = offsetToCell(offset, cellSizePx)
+                        val local = offset - gridOffset
+                        val cell = offsetToCell(local, cellSizePx)
                         if (cell != null && paintedDuringDrag.add(cell)) {
                             onTilePaint(cell.first, cell.second)
                         }
                     },
                     onDrag = { change, _ ->
-                        val cell = offsetToCell(change.position, cellSizePx)
+                        val cell = offsetToCell(change.position - gridOffset, cellSizePx)
                         if (cell != null && paintedDuringDrag.add(cell)) {
                             onTilePaint(cell.first, cell.second)
                         }
                     },
                     onDragEnd = {
                         paintedDuringDrag.clear()
+                        Log.d("test", "drag end")
                     },
                     onDragCancel = {
                         paintedDuringDrag.clear()
+                        Log.d("test", "drag cancel")
                     }
                 )
-            }
+            },
+        contentAlignment = Alignment.Center
     ) {
         Column(
             modifier = Modifier
@@ -94,6 +103,10 @@ fun LevelEditorGrid(
                 .aspectRatio(1f)
                 .onSizeChanged { layoutSize ->
                     cellSizePx = layoutSize.width / 8f
+                }
+                .onGloballyPositioned { coords ->
+                    val pos = coords.positionInParent()
+                    gridOffset = Offset(pos.x, pos.y)
                 },
         ) {
             uiState.tiles.forEachIndexed { row, columns ->
@@ -101,13 +114,16 @@ fun LevelEditorGrid(
                     modifier = Modifier
                         .weight(1f)
                 ) {
-                    columns.forEachIndexed { index, tileUiState ->
+                    columns.forEachIndexed { col, tileUiState ->
                         TileCell(
                             modifier = Modifier
                                 .weight(1f)
                                 .aspectRatio(1f),
                             uiState = tileUiState,
-                            debugText = "${row * COLUMNS + index}"
+                            onTap = {
+                                onTilePaint(row, col)
+                            },
+                            debugText = "${row * COLUMNS + col}"
                         )
                     }
                 }
@@ -131,6 +147,7 @@ private fun offsetToCell(
 fun TileCell(
     modifier: Modifier = Modifier,
     uiState: TileUiState,
+    onTap: () -> Unit,
     debugText: String
 ) {
     Box(
@@ -139,6 +156,7 @@ fun TileCell(
                 detectTapGestures(
                     onTap = {
                         Log.d("test", "tap $debugText")
+                        onTap()
                     },
                     onLongPress = {
                         Log.d("test", "tap $debugText")
