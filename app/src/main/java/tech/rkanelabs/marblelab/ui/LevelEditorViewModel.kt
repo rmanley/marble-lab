@@ -37,4 +37,13 @@ class LevelEditorViewModel @Inject constructor() : ViewModel() {
             )
         }
     }
+
+    fun onEditModeSelected(mode: EditMode) = viewModelScope.launch {
+        Log.d("test", "edit mode = $mode")
+        _uiState.update {
+            it.copy(
+                editMode = mode
+            )
+        }
+    }
 }
