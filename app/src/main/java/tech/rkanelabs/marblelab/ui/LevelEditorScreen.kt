@@ -1,19 +1,23 @@
 package tech.rkanelabs.marblelab.ui
 
 import android.util.Log
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
+import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
+import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Scaffold
@@ -250,6 +254,7 @@ fun EditModeRadioGroupPreview() {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun TilePaletteRow(
     mode: EditMode,
@@ -265,11 +270,15 @@ fun TilePaletteRow(
         EditMode.Erase -> listOf()
     }
 
-    LazyRow(
+    LazyHorizontalStaggeredGrid(
+        rows = StaggeredGridCells.Adaptive(minSize = 52.dp),
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = 56.dp, max = 200.dp)
             .padding(horizontal = 8.dp, vertical = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalItemSpacing = 8.dp,
+        verticalArrangement = Arrangement.spacedBy(8.dp),
+        contentPadding = PaddingValues(horizontal = 0.dp, vertical = 4.dp)
     ) {
         if (mode == EditMode.Walls) {
             items(listOf(WallMask.Up, WallMask.Right, WallMask.Down, WallMask.Left, WallMask.All, WallMask.None)) { wallMask ->
@@ -319,6 +328,20 @@ fun TilePaletteRowPreview() {
     MarbleLabTheme {
         TilePaletteRow(
             mode = EditMode.Floor,
+            selectedTile = TileType.Floor,
+            onTileSelected = { print("$it") },
+            selectedWallMask = WallMask.None,
+            onWallMaskSelected = { print("$it") }
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun WallsTilePaletteRowPreview() {
+    MarbleLabTheme {
+        TilePaletteRow(
+            mode = EditMode.Walls,
             selectedTile = TileType.Floor,
             onTileSelected = { print("$it") },
             selectedWallMask = WallMask.None,

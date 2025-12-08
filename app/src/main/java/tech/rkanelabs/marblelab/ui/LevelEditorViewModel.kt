@@ -29,7 +29,11 @@ class LevelEditorViewModel @Inject constructor() : ViewModel() {
                         columns.mapIndexed { columnIndex, cell ->
                             if (columnIndex != col) cell else cell.copy(
                                 tile = cell.tile.copy(
-                                    type = state.selectedTile,
+                                    type = if (state.editMode != EditMode.Walls) {
+                                        state.selectedTile
+                                    } else {
+                                        cell.tile.type
+                                    },
                                     walls = when (state.editMode) {
                                         EditMode.Walls -> {
                                             if (state.selectedWallMask == WallMask.None) {
