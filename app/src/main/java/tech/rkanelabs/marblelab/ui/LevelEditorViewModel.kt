@@ -31,7 +31,13 @@ class LevelEditorViewModel @Inject constructor() : ViewModel() {
                                 tile = cell.tile.copy(
                                     type = state.selectedTile,
                                     walls = when (state.editMode) {
-                                        EditMode.Walls -> state.selectedWallMask
+                                        EditMode.Walls -> {
+                                            if (state.selectedWallMask == WallMask.None) {
+                                                WallMask.None
+                                            } else {
+                                                cell.tile.walls.with(state.selectedWallMask)
+                                            }
+                                        }
                                         EditMode.Erase -> WallMask.None
                                         else -> cell.tile.walls
                                     }

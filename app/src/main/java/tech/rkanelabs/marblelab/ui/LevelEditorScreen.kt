@@ -272,7 +272,7 @@ fun TilePaletteRow(
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         if (mode == EditMode.Walls) {
-            items(listOf(WallMask.Up, WallMask.Right, WallMask.Down, WallMask.Left, WallMask.All)) { wallMask ->
+            items(listOf(WallMask.Up, WallMask.Right, WallMask.Down, WallMask.Left, WallMask.All, WallMask.None)) { wallMask ->
                 FilterChip(
                     onClick = { onWallMaskSelected(wallMask) },
                     label = {
@@ -282,15 +282,9 @@ fun TilePaletteRow(
                                 WallMask.Right -> "Right"
                                 WallMask.Down -> "Down"
                                 WallMask.Left -> "Left"
-                                else -> "All"
+                                WallMask.All -> "All"
+                                else -> "None"
                             }
-                        )
-                    },
-                    leadingIcon = {
-                        Box(
-                            modifier = Modifier
-                                .padding(end = 4.dp)
-                                .padding(6.dp)
                         )
                     },
                     selected = wallMask == selectedWallMask
