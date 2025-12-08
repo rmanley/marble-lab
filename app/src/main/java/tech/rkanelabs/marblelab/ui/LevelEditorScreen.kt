@@ -2,7 +2,6 @@ package tech.rkanelabs.marblelab.ui
 
 import android.util.Log
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
@@ -10,7 +9,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -164,13 +162,14 @@ fun TileCell(
                 )
             }
             .border(
-                width = 2.dp,
                 color = Color.Black,
+                sides = uiState.tile.walls
             )
-            .padding(1.dp)
+            .padding(0.dp)
             .background(
                 color = when (uiState.tile.type) {
                     TileType.Empty -> Color.White
+                    TileType.Floor -> Color.Gray
                     TileType.Marble -> Color.Magenta
                     TileType.Goal -> Color.Green
                     TileType.Hole -> Color.Red
