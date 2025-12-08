@@ -1,6 +1,7 @@
 package tech.rkanelabs.marblelab.ui
 
 import tech.rkanelabs.marblelab.data.Tile
+import tech.rkanelabs.marblelab.data.TileType
 
 const val ROWS = 8
 const val COLUMNS = 8
@@ -8,7 +9,8 @@ const val COLUMNS = 8
 enum class EditMode {
     Floor,
     Walls,
-    Objects
+    Objects,
+    Erase
 }
 
 data class LevelEditorUiState(
@@ -21,6 +23,7 @@ data class LevelEditorUiState(
         }
     },
     val editMode: EditMode = EditMode.Floor,
+    val selectedTile: TileType = TileType.Floor
 )
 
 data class TileUiState(

@@ -28,7 +28,7 @@ class LevelEditorViewModel @Inject constructor() : ViewModel() {
                         columns.mapIndexed { columnIndex, cell ->
                             if (columnIndex != col) cell else cell.copy(
                                 tile = cell.tile.copy(
-                                    type = TileType.Hole // todo: apply selected tile
+                                    type = state.selectedTile
                                 )
                             )
                         }
@@ -43,6 +43,15 @@ class LevelEditorViewModel @Inject constructor() : ViewModel() {
         _uiState.update {
             it.copy(
                 editMode = mode
+            )
+        }
+    }
+
+    fun onTileTypeSelected(tileType: TileType) = viewModelScope.launch {
+        Log.d("test", "tile type = $tileType")
+        _uiState.update {
+            it.copy(
+                selectedTile = tileType
             )
         }
     }

@@ -1,7 +1,6 @@
 package tech.rkanelabs.marblelab.ui
 
 import android.util.Log
-import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -13,6 +12,9 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -52,10 +54,16 @@ fun LevelEditorScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
+                    .padding(bottom = 64.dp)
             ) {
                 EditModeRadioGroupRow(
                     selected = uiState.editMode,
                     onSelected = viewModel::onEditModeSelected
+                )
+                TilePaletteRow(
+                    mode = uiState.editMode,
+                    selectedTile = uiState.selectedTile,
+                    onTileSelected = viewModel::onTileTypeSelected
                 )
             }
         }
@@ -183,13 +191,7 @@ fun TileCell(
             )
             .padding(0.dp)
             .background(
-                color = when (uiState.tile.type) {
-                    TileType.Empty -> Color.White
-                    TileType.Floor -> Color.Gray
-                    TileType.Marble -> Color.Magenta
-                    TileType.Goal -> Color.Green
-                    TileType.Hole -> Color.Red
-                }
+                tileType = uiState.tile.type
             ),
         contentAlignment = Alignment.Center,
     ) {
@@ -239,6 +241,59 @@ fun EditModeRadioGroupPreview() {
     MarbleLabTheme {
         EditModeRadioGroupRow(
             selected = EditMode.Floor
+        ) {
+            print("$it")
+        }
+    }
+}
+
+@Composable
+fun TilePaletteRow(
+    mode: EditMode,
+    selectedTile: TileType,
+    onTileSelected: (TileType) -> Unit
+) {
+    val tilesForMode = when (mode) {
+        EditMode.Floor -> listOf(TileType.Floor, TileType.Hole)
+        EditMode.Walls -> listOf()
+        EditMode.Objects -> listOf(TileType.Marble, TileType.Goal)
+        EditMode.Erase -> listOf(TileType.Empty)
+    }
+
+    LazyRow(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 8.dp, vertical = 4.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(tilesForMode) { tileType ->
+            FilterChip(
+                onClick = { onTileSelected(tileType) },
+                label = { Text(tileType.name) },
+                leadingIcon = {
+                    Box(
+                        modifier = Modifier
+                            .padding(end = 4.dp)
+                            .background(
+                                tileType = tileType,
+                                shape = CircleShape
+                            )
+                            .padding(6.dp)
+                    )
+                },
+                selected = tileType == selectedTile
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun TilePaletteRowPreview() {
+    MarbleLabTheme {
+        TilePaletteRow(
+            mode = EditMode.Floor,
+            selectedTile = TileType.Floor
         ) {
             print("$it")
         }
