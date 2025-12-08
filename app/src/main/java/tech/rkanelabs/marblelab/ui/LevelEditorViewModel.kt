@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tech.rkanelabs.marblelab.data.TileType
+import tech.rkanelabs.marblelab.data.WallMask
 import javax.inject.Inject
 
 @HiltViewModel
@@ -28,7 +29,12 @@ class LevelEditorViewModel @Inject constructor() : ViewModel() {
                         columns.mapIndexed { columnIndex, cell ->
                             if (columnIndex != col) cell else cell.copy(
                                 tile = cell.tile.copy(
-                                    type = state.selectedTile
+                                    type = state.selectedTile,
+                                    walls = when (state.editMode) {
+                                        EditMode.Walls -> state.selectedWallMask
+                                        EditMode.Erase -> WallMask.None
+                                        else -> cell.tile.walls
+                                    }
                                 )
                             )
                         }
@@ -52,7 +58,17 @@ class LevelEditorViewModel @Inject constructor() : ViewModel() {
         Log.d("test", "tile type = $tileType")
         _uiState.update {
             it.copy(
-                selectedTile = tileType
+                selectedTile = tileType,
+                selectedWallMask = WallMask.None
+            )
+        }
+    }
+
+    fun onWallMaskSelected(wallMask: WallMask) = viewModelScope.launch {
+        Log.d("test", "wall mask = $wallMask")
+        _uiState.update {
+            it.copy(
+                selectedWallMask = wallMask
             )
         }
     }

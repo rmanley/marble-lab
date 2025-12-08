@@ -2,6 +2,7 @@ package tech.rkanelabs.marblelab.ui
 
 import tech.rkanelabs.marblelab.data.Tile
 import tech.rkanelabs.marblelab.data.TileType
+import tech.rkanelabs.marblelab.data.WallMask
 
 const val ROWS = 8
 const val COLUMNS = 8
@@ -23,7 +24,8 @@ data class LevelEditorUiState(
         }
     },
     val editMode: EditMode = EditMode.Floor,
-    val selectedTile: TileType = TileType.Floor
+    val selectedTile: TileType = TileType.Floor,
+    val selectedWallMask: WallMask = WallMask.None
 )
 
 data class TileUiState(

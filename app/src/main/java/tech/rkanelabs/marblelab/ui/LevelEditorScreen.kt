@@ -37,6 +37,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import tech.rkanelabs.marblelab.data.TileType
+import tech.rkanelabs.marblelab.data.WallMask
 import tech.rkanelabs.marblelab.ui.theme.MarbleLabTheme
 
 @Composable
@@ -63,7 +64,9 @@ fun LevelEditorScreen(
                 TilePaletteRow(
                     mode = uiState.editMode,
                     selectedTile = uiState.selectedTile,
-                    onTileSelected = viewModel::onTileTypeSelected
+                    onTileSelected = viewModel::onTileTypeSelected,
+                    selectedWallMask = uiState.selectedWallMask,
+                    onWallMaskSelected = viewModel::onWallMaskSelected
                 )
             }
         }
@@ -251,7 +254,9 @@ fun EditModeRadioGroupPreview() {
 fun TilePaletteRow(
     mode: EditMode,
     selectedTile: TileType,
-    onTileSelected: (TileType) -> Unit
+    onTileSelected: (TileType) -> Unit,
+    selectedWallMask: WallMask,
+    onWallMaskSelected: (WallMask) -> Unit
 ) {
     val tilesForMode = when (mode) {
         EditMode.Floor -> listOf(TileType.Floor, TileType.Hole)
@@ -266,23 +271,50 @@ fun TilePaletteRow(
             .padding(horizontal = 8.dp, vertical = 4.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(tilesForMode) { tileType ->
-            FilterChip(
-                onClick = { onTileSelected(tileType) },
-                label = { Text(tileType.name) },
-                leadingIcon = {
-                    Box(
-                        modifier = Modifier
-                            .padding(end = 4.dp)
-                            .background(
-                                tileType = tileType,
-                                shape = CircleShape
-                            )
-                            .padding(6.dp)
-                    )
-                },
-                selected = tileType == selectedTile
-            )
+        if (mode == EditMode.Walls) {
+            items(listOf(WallMask.Up, WallMask.Right, WallMask.Down, WallMask.Left, WallMask.All)) { wallMask ->
+                FilterChip(
+                    onClick = { onWallMaskSelected(wallMask) },
+                    label = {
+                        Text(
+                            when (wallMask) {
+                                WallMask.Up -> "Up"
+                                WallMask.Right -> "Right"
+                                WallMask.Down -> "Down"
+                                WallMask.Left -> "Left"
+                                else -> "All"
+                            }
+                        )
+                    },
+                    leadingIcon = {
+                        Box(
+                            modifier = Modifier
+                                .padding(end = 4.dp)
+                                .padding(6.dp)
+                        )
+                    },
+                    selected = wallMask == selectedWallMask
+                )
+            }
+        } else {
+            items(tilesForMode) { tileType ->
+                FilterChip(
+                    onClick = { onTileSelected(tileType) },
+                    label = { Text(tileType.name) },
+                    leadingIcon = {
+                        Box(
+                            modifier = Modifier
+                                .padding(end = 4.dp)
+                                .background(
+                                    tileType = tileType,
+                                    shape = CircleShape
+                                )
+                                .padding(6.dp)
+                        )
+                    },
+                    selected = tileType == selectedTile
+                )
+            }
         }
     }
 }
@@ -293,9 +325,10 @@ fun TilePaletteRowPreview() {
     MarbleLabTheme {
         TilePaletteRow(
             mode = EditMode.Floor,
-            selectedTile = TileType.Floor
-        ) {
-            print("$it")
-        }
+            selectedTile = TileType.Floor,
+            onTileSelected = { print("$it") },
+            selectedWallMask = WallMask.None,
+            onWallMaskSelected = { print("$it") }
+        )
     }
 }
