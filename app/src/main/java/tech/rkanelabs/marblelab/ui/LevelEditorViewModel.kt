@@ -42,7 +42,8 @@ class LevelEditorViewModel @Inject constructor() : ViewModel() {
         Log.d("test", "edit mode = $mode")
         _uiState.update {
             it.copy(
-                editMode = mode
+                editMode = mode,
+                selectedTile = if (mode == EditMode.Erase) TileType.Empty else it.selectedTile
             )
         }
     }

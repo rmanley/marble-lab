@@ -257,7 +257,7 @@ fun TilePaletteRow(
         EditMode.Floor -> listOf(TileType.Floor, TileType.Hole)
         EditMode.Walls -> listOf()
         EditMode.Objects -> listOf(TileType.Marble, TileType.Goal)
-        EditMode.Erase -> listOf(TileType.Empty)
+        EditMode.Erase -> listOf()
     }
 
     LazyRow(
