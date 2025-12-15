@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -21,7 +22,11 @@ import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGri
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.FilterChip
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -58,7 +63,15 @@ fun LevelEditorScreen(
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        topBar = { MarbleLabTopAppBar() },
+        topBar = {
+            MarbleLabTopAppBar(
+                actions = {
+                    LevelEditorMenuActions(
+                        onSaveTapped = viewModel::onSaveTapped
+                    )
+                }
+            )
+        },
         bottomBar = {
             Column(
                 modifier = Modifier
@@ -367,5 +380,29 @@ fun WallsTilePaletteRowPreview() {
             selectedWallMask = WallMask.None,
             onWallMaskSelected = { print("$it") }
         )
+    }
+}
+
+@Composable
+fun RowScope.LevelEditorMenuActions(
+    onSaveTapped: () -> Unit = {
+        Log.d("test", "save tapped!")
+    }
+) {
+    IconButton(onClick = onSaveTapped) {
+        Icon(
+            imageVector = Icons.Filled.Save,
+            contentDescription = "Save level"
+        )
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun LevelEditorMenuActionsPreview() {
+    MarbleLabTheme {
+        Row {
+            LevelEditorMenuActions()
+        }
     }
 }

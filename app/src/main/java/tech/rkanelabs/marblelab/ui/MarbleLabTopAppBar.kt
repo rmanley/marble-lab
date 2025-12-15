@@ -2,6 +2,7 @@
 
 package tech.rkanelabs.marblelab.ui
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -14,7 +15,9 @@ import tech.rkanelabs.marblelab.ui.theme.MarbleLabTheme
 
 @Composable
 fun MarbleLabTopAppBar(
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    navigationIcon: @Composable (() -> Unit) = {},
+    actions: @Composable (RowScope.() -> Unit) = {},
 ) {
     TopAppBar(
         colors = TopAppBarDefaults.topAppBarColors(
@@ -24,6 +27,8 @@ fun MarbleLabTopAppBar(
         title = {
             Text("Marble Lab")
         },
+        navigationIcon = navigationIcon,
+        actions = actions,
         modifier = modifier,
     )
 }

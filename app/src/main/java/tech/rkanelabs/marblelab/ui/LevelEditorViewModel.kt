@@ -82,4 +82,9 @@ class LevelEditorViewModel @Inject constructor() : ViewModel() {
             )
         }
     }
+
+    fun onSaveTapped() = viewModelScope.launch {
+        Log.d("test", "save tapped")
+        // todo: serialize to json and save file to downloads
+    }
 }
