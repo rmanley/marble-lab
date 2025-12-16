@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -106,7 +107,7 @@ fun LevelEditorScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .padding(bottom = 64.dp)
+                    .padding(bottom = 16.dp)
             ) {
                 EditModeRadioGroupRow(
                     selected = uiState.editMode,
@@ -359,45 +360,62 @@ fun TilePaletteRow(
         verticalArrangement = Arrangement.spacedBy(8.dp),
         contentPadding = PaddingValues(horizontal = 0.dp, vertical = 4.dp)
     ) {
-        if (mode == EditMode.Walls) {
-            items(listOf(WallMask.Up, WallMask.Right, WallMask.Down, WallMask.Left, WallMask.All, WallMask.None)) { wallMask ->
-                FilterChip(
-                    onClick = { onWallMaskSelected(wallMask) },
-                    label = {
-                        Text(
-                            when (wallMask) {
-                                WallMask.Up -> "Up"
-                                WallMask.Right -> "Right"
-                                WallMask.Down -> "Down"
-                                WallMask.Left -> "Left"
-                                WallMask.All -> "All"
-                                else -> "None"
-                            }
-                        )
-                    },
-                    selected = wallMask == selectedWallMask,
-                    enabled = enabled
-                )
+        when (mode) {
+            EditMode.Erase -> {
+                item {
+                    // Empty, keep to prevent UI jump
+                }
             }
-        } else {
-            items(tilesForMode) { tileType ->
-                FilterChip(
-                    onClick = { onTileSelected(tileType) },
-                    label = { Text(tileType.name) },
-                    leadingIcon = {
-                        Box(
-                            modifier = Modifier
-                                .padding(end = 4.dp)
-                                .background(
-                                    tileType = tileType,
-                                    shape = CircleShape
-                                )
-                                .padding(6.dp)
-                        )
-                    },
-                    selected = tileType == selectedTile,
-                    enabled = enabled
-                )
+            EditMode.Walls -> {
+                items(
+                    listOf(
+                        WallMask.Up,
+                        WallMask.Right,
+                        WallMask.Down,
+                        WallMask.Left,
+                        WallMask.All,
+                        WallMask.None
+                    )
+                ) { wallMask ->
+                    FilterChip(
+                        onClick = { onWallMaskSelected(wallMask) },
+                        label = {
+                            Text(
+                                when (wallMask) {
+                                    WallMask.Up -> "Up"
+                                    WallMask.Right -> "Right"
+                                    WallMask.Down -> "Down"
+                                    WallMask.Left -> "Left"
+                                    WallMask.All -> "All"
+                                    else -> "None"
+                                }
+                            )
+                        },
+                        selected = wallMask == selectedWallMask,
+                        enabled = enabled
+                    )
+                }
+            }
+            else -> {
+                items(tilesForMode) { tileType ->
+                    FilterChip(
+                        onClick = { onTileSelected(tileType) },
+                        label = { Text(tileType.name) },
+                        leadingIcon = {
+                            Box(
+                                modifier = Modifier
+                                    .padding(end = 4.dp)
+                                    .background(
+                                        tileType = tileType,
+                                        shape = CircleShape
+                                    )
+                                    .padding(6.dp)
+                            )
+                        },
+                        selected = tileType == selectedTile,
+                        enabled = enabled
+                    )
+                }
             }
         }
     }
