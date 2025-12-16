@@ -5,9 +5,11 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import tech.rkanelabs.marblelab.data.LevelExporterRepository
@@ -22,6 +24,9 @@ class LevelEditorViewModel @Inject constructor(
 
     private val _uiState = MutableStateFlow(LevelEditorUiState())
     val uiState: StateFlow<LevelEditorUiState> = _uiState.asStateFlow()
+
+    private val _events = Channel<LevelEditorEvent>()
+    val events = _events.receiveAsFlow()
 
     fun onTilePaint(row: Int, col: Int) = viewModelScope.launch {
         if (_uiState.value.isLoading) return@launch
@@ -98,9 +103,11 @@ class LevelEditorViewModel @Inject constructor(
             uri = uri,
             tiles = tiles.flatten().map { it.tile }
         ).onSuccess {
-            Log.d("test", "saved to: $it")
+            Log.d("test", "saved as: $it")
+            _events.send(LevelEditorEvent.FileSaveResult("Level saved to: $it"))
         }.onFailure {
             Log.e("test", "save failed", it)
+            _events.send(LevelEditorEvent.FileSaveResult("Failed to save level!"))
         }
         _uiState.update { it.copy(isLoading = false) }
     }
