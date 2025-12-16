@@ -1,6 +1,9 @@
 package tech.rkanelabs.marblelab.ui
 
+import android.net.Uri
 import android.util.Log
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -13,20 +16,24 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.aspectRatio
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.staggeredgrid.LazyHorizontalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Save
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -67,7 +74,8 @@ fun LevelEditorScreen(
             MarbleLabTopAppBar(
                 actions = {
                     LevelEditorMenuActions(
-                        onSaveTapped = viewModel::onSaveTapped
+                        onSaveTapped = viewModel::onSaveTapped,
+                        enabled = uiState.isLoading.not()
                     )
                 }
             )
@@ -81,14 +89,16 @@ fun LevelEditorScreen(
             ) {
                 EditModeRadioGroupRow(
                     selected = uiState.editMode,
-                    onSelected = viewModel::onEditModeSelected
+                    onSelected = viewModel::onEditModeSelected,
+                    enabled = uiState.isLoading.not()
                 )
                 TilePaletteRow(
                     mode = uiState.editMode,
                     selectedTile = uiState.selectedTile,
                     onTileSelected = viewModel::onTileTypeSelected,
                     selectedWallMask = uiState.selectedWallMask,
-                    onWallMaskSelected = viewModel::onWallMaskSelected
+                    onWallMaskSelected = viewModel::onWallMaskSelected,
+                    enabled = uiState.isLoading.not()
                 )
             }
         }
@@ -176,6 +186,16 @@ fun LevelEditorGrid(
                 }
             }
         }
+
+        if (uiState.isLoading) {
+            CircularProgressIndicator(
+                modifier = Modifier.width(64.dp)
+                    .fillMaxHeight()
+                    .aspectRatio(1f),
+                color = MaterialTheme.colorScheme.secondary,
+                trackColor = MaterialTheme.colorScheme.surfaceVariant,
+            )
+        }
     }
 }
 
@@ -253,7 +273,8 @@ fun LevelEditorGridPreview() {
 @Composable
 fun EditModeRadioGroupRow(
     selected: EditMode,
-    onSelected: (EditMode) -> Unit
+    onSelected: (EditMode) -> Unit,
+    enabled: Boolean = true
 ) {
     Row(
         modifier = Modifier
@@ -269,7 +290,8 @@ fun EditModeRadioGroupRow(
                 },
                 label = {
                     Text(mode.name.lowercase().replaceFirstChar { it.uppercase() })
-                }
+                },
+                enabled = enabled
             )
         }
     }
@@ -280,10 +302,11 @@ fun EditModeRadioGroupRow(
 fun EditModeRadioGroupPreview() {
     MarbleLabTheme {
         EditModeRadioGroupRow(
-            selected = EditMode.Floor
-        ) {
-            print("$it")
-        }
+            selected = EditMode.Floor,
+            onSelected = {
+                print("$it")
+            }
+        )
     }
 }
 
@@ -294,7 +317,8 @@ fun TilePaletteRow(
     selectedTile: TileType,
     onTileSelected: (TileType) -> Unit,
     selectedWallMask: WallMask,
-    onWallMaskSelected: (WallMask) -> Unit
+    onWallMaskSelected: (WallMask) -> Unit,
+    enabled: Boolean = true
 ) {
     val tilesForMode = when (mode) {
         EditMode.Floor -> listOf(TileType.Floor, TileType.Hole)
@@ -329,7 +353,8 @@ fun TilePaletteRow(
                             }
                         )
                     },
-                    selected = wallMask == selectedWallMask
+                    selected = wallMask == selectedWallMask,
+                    enabled = enabled
                 )
             }
         } else {
@@ -348,7 +373,8 @@ fun TilePaletteRow(
                                 .padding(6.dp)
                         )
                     },
-                    selected = tileType == selectedTile
+                    selected = tileType == selectedTile,
+                    enabled = enabled
                 )
             }
         }
@@ -385,11 +411,23 @@ fun WallsTilePaletteRowPreview() {
 
 @Composable
 fun RowScope.LevelEditorMenuActions(
-    onSaveTapped: () -> Unit = {
-        Log.d("test", "save tapped!")
-    }
+    onSaveTapped: (Uri) -> Unit = { uri ->
+        Log.d("test", "save tapped: $uri!")
+    },
+    enabled: Boolean = true
 ) {
-    IconButton(onClick = onSaveTapped) {
+    val createDocumentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let(onSaveTapped) ?: Log.e("test", "Failed to create document!")
+    }
+
+    IconButton(
+        onClick = {
+            createDocumentLauncher.launch("mbl_${System.currentTimeMillis()}.json")
+        },
+        enabled = enabled
+    ) {
         Icon(
             imageVector = Icons.Filled.Save,
             contentDescription = "Save level"

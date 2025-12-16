@@ -15,7 +15,7 @@ enum class EditMode {
 }
 
 data class LevelEditorUiState(
-    val isLoading: Boolean = true,
+    val isLoading: Boolean = false,
     val tiles: List<List<TileUiState>> = List(ROWS) {
         List(COLUMNS) {
             TileUiState(

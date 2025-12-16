@@ -1,5 +1,6 @@
 package tech.rkanelabs.marblelab.ui
 
+import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,16 +10,22 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import tech.rkanelabs.marblelab.data.LevelExporterRepository
 import tech.rkanelabs.marblelab.data.TileType
 import tech.rkanelabs.marblelab.data.WallMask
 import javax.inject.Inject
 
 @HiltViewModel
-class LevelEditorViewModel @Inject constructor() : ViewModel() {
+class LevelEditorViewModel @Inject constructor(
+    private val levelExporterRepository: LevelExporterRepository
+) : ViewModel() {
+
     private val _uiState = MutableStateFlow(LevelEditorUiState())
     val uiState: StateFlow<LevelEditorUiState> = _uiState.asStateFlow()
 
     fun onTilePaint(row: Int, col: Int) = viewModelScope.launch {
+        if (_uiState.value.isLoading) return@launch
+
         Log.d("test", "drag ($row, $col)")
         _uiState.update { state ->
             state.copy(
@@ -83,8 +90,18 @@ class LevelEditorViewModel @Inject constructor() : ViewModel() {
         }
     }
 
-    fun onSaveTapped() = viewModelScope.launch {
+    fun onSaveTapped(uri: Uri) = viewModelScope.launch {
         Log.d("test", "save tapped")
-        // todo: serialize to json and save file to downloads
+        val tiles = _uiState.value.tiles
+        _uiState.update { it.copy(isLoading = true) }
+        levelExporterRepository.saveTiles(
+            uri = uri,
+            tiles = tiles.flatten().map { it.tile }
+        ).onSuccess {
+            Log.d("test", "saved to: $it")
+        }.onFailure {
+            Log.e("test", "save failed", it)
+        }
+        _uiState.update { it.copy(isLoading = false) }
     }
 }

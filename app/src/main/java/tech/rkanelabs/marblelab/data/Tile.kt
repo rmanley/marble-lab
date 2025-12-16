@@ -1,5 +1,8 @@
 package tech.rkanelabs.marblelab.data
 
+import kotlinx.serialization.Serializable
+
+@Serializable
 data class Tile(
     val type: TileType = TileType.Floor,
     val walls: WallMask = WallMask.None
@@ -13,6 +16,7 @@ enum class TileType {
     Hole,
 }
 
+@Serializable
 @JvmInline
 value class WallMask(val bits: Int) {
     companion object {
