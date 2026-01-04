@@ -270,8 +270,9 @@ fun TileCell(
                 )
             }
             .border(
-                color = Color.Black,
-                sides = uiState.tile.walls
+                color = Color.DarkGray,
+                sides = uiState.tile.walls,
+                strokeWidth = 6.dp
             )
             .padding(0.dp)
             .background(color = Color.Transparent),
@@ -286,7 +287,10 @@ fun TileCell(
             )
         }
 
-        Text(debugText)
+        Text(
+            text = debugText,
+            color = Color.White
+        )
     }
 }
 
