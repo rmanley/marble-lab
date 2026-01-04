@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
@@ -30,6 +29,8 @@ import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
 import androidx.compose.foundation.lazy.staggeredgrid.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircleOutline
+import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Save
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
@@ -85,6 +86,10 @@ fun LevelEditorScreen(
                         Toast.makeText(context, event.message, Toast.LENGTH_SHORT)
                             .show()
                     }
+                    is LevelEditorEvent.FileLoadError -> {
+                        Toast.makeText(context, event.message, Toast.LENGTH_SHORT)
+                            .show()
+                    }
                 }
             }
         }
@@ -96,7 +101,10 @@ fun LevelEditorScreen(
             MarbleLabTopAppBar(
                 actions = {
                     LevelEditorMenuActions(
+                        onCreateNewLevelTapped = viewModel::onCreateNewLevelTapped,
                         onSaveTapped = viewModel::onSaveTapped,
+                        onLoadTapped = viewModel::onLoadTapped,
+                        getFilename = viewModel::getFilename,
                         enabled = uiState.isLoading.not()
                     )
                 }
@@ -451,8 +459,17 @@ fun WallsTilePaletteRowPreview() {
 
 @Composable
 fun RowScope.LevelEditorMenuActions(
+    onCreateNewLevelTapped: () -> Unit = {
+        Log.d("test", "create new level tapped!")
+    },
     onSaveTapped: (Uri) -> Unit = { uri ->
         Log.d("test", "save tapped: $uri!")
+    },
+    onLoadTapped: (Uri) -> Unit = { uri ->
+        Log.d("test", "load tapped: $uri")
+    },
+    getFilename: () -> String = {
+        "mbl_${System.currentTimeMillis()}.json"
     },
     enabled: Boolean = true
 ) {
@@ -462,9 +479,38 @@ fun RowScope.LevelEditorMenuActions(
         uri?.let(onSaveTapped) ?: Log.e("test", "Failed to create document!")
     }
 
+    val chooseDocumentLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let(onLoadTapped) ?: Log.e("test", "Failed to load document!")
+    }
+
+    IconButton(
+        onClick = onCreateNewLevelTapped,
+        enabled = enabled
+    ) {
+        Icon(
+            imageVector = Icons.Filled.AddCircleOutline,
+            contentDescription = "Create new level"
+        )
+    }
+
     IconButton(
         onClick = {
-            createDocumentLauncher.launch("mbl_${System.currentTimeMillis()}.json")
+            chooseDocumentLauncher.launch("application/json")
+        },
+        enabled = enabled
+    ) {
+        Icon(
+            imageVector = Icons.Filled.FolderOpen,
+            contentDescription = "Load level"
+        )
+    }
+
+    IconButton(
+        onClick = {
+            // save as new file every time for simplicity
+            createDocumentLauncher.launch(getFilename())
         },
         enabled = enabled
     ) {

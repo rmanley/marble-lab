@@ -12,14 +12,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import tech.rkanelabs.marblelab.data.LevelExporterRepository
+import tech.rkanelabs.marblelab.data.LevelsRepository
 import tech.rkanelabs.marblelab.data.TileType
 import tech.rkanelabs.marblelab.data.WallMask
 import javax.inject.Inject
 
 @HiltViewModel
 class LevelEditorViewModel @Inject constructor(
-    private val levelExporterRepository: LevelExporterRepository
+    private val levelsRepository: LevelsRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LevelEditorUiState())
@@ -27,6 +27,9 @@ class LevelEditorViewModel @Inject constructor(
 
     private val _events = Channel<LevelEditorEvent>()
     val events = _events.receiveAsFlow()
+
+    private var currentFilename: String? = null
+    fun getFilename(): String = currentFilename ?: "mbl_${System.currentTimeMillis()}.json"
 
     fun onTilePaint(row: Int, col: Int) = viewModelScope.launch {
         if (_uiState.value.isLoading) return@launch
@@ -99,7 +102,7 @@ class LevelEditorViewModel @Inject constructor(
         Log.d("test", "save tapped")
         val tiles = _uiState.value.tiles
         _uiState.update { it.copy(isLoading = true) }
-        levelExporterRepository.saveTiles(
+        levelsRepository.saveTiles(
             uri = uri,
             tiles = tiles.flatten().map { it.tile }
         ).onSuccess {
@@ -110,5 +113,32 @@ class LevelEditorViewModel @Inject constructor(
             _events.send(LevelEditorEvent.FileSaveResult("Failed to save level!"))
         }
         _uiState.update { it.copy(isLoading = false) }
+    }
+
+    fun onLoadTapped(uri: Uri) = viewModelScope.launch {
+        Log.d("test", "load tapped")
+        _uiState.update { it.copy(isLoading = true) }
+        levelsRepository.loadTiles(uri).onSuccess { (filename, tiles) ->
+            Log.d("test", "level loaded: $filename")
+            currentFilename = filename
+            _uiState.update { state ->
+                state.copy(
+                    tiles = tiles.map {
+                        TileUiState(it)
+                    }.chunked(8),
+                    isLoading = false
+                )
+            }
+        }.onFailure {
+            Log.e("test", "load failed", it)
+            _uiState.update { it.copy(isLoading = false) }
+            _events.send(LevelEditorEvent.FileLoadError("Failed to load level!"))
+        }
+    }
+
+    fun onCreateNewLevelTapped() = viewModelScope.launch {
+        Log.d("test", "create new level tapped")
+        currentFilename = null
+        _uiState.update { it.copy(tiles = LevelEditorUiState.DEFAULT_TILES) }
     }
 }

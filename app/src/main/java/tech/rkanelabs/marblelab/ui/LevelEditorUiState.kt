@@ -16,17 +16,21 @@ enum class EditMode {
 
 data class LevelEditorUiState(
     val isLoading: Boolean = false,
-    val tiles: List<List<TileUiState>> = List(ROWS) {
-        List(COLUMNS) {
-            TileUiState(
-                tile = Tile(),
-            )
-        }
-    },
+    val tiles: List<List<TileUiState>> = DEFAULT_TILES,
     val editMode: EditMode = EditMode.Floor,
     val selectedTile: TileType = TileType.Floor,
     val selectedWallMask: WallMask = WallMask.None
-)
+) {
+    companion object {
+        val DEFAULT_TILES = List(ROWS) {
+            List(COLUMNS) {
+                TileUiState(
+                    tile = Tile(),
+                )
+            }
+        }
+    }
+}
 
 data class TileUiState(
     val tile: Tile,

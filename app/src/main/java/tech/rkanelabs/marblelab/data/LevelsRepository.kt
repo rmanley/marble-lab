@@ -4,12 +4,14 @@ import android.content.ContentResolver
 import android.net.Uri
 import android.provider.OpenableColumns
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.decodeFromStream
 import tech.rkanelabs.marblelab.util.CoroutineDispatcherProvider
 import javax.inject.Inject
 
-class LevelExporterRepository @Inject constructor(
+class LevelsRepository @Inject constructor(
     private val contentResolver: ContentResolver,
     private val json: Json,
     private val coroutines: CoroutineDispatcherProvider
@@ -21,6 +23,18 @@ class LevelExporterRepository @Inject constructor(
                 outputStream.write(jsonString.toByteArray())
             }
             uri.displayName
+        }
+    }
+
+    @OptIn(ExperimentalSerializationApi::class)
+    suspend fun loadTiles(uri: Uri): Result<Pair<String, List<Tile>>> = withContext(coroutines.io) {
+        runCatching {
+            contentResolver.openInputStream(uri)!!.use { inputStream ->
+                Pair(
+                    uri.displayName,
+                json.decodeFromStream(inputStream)
+                )
+            }
         }
     }
 
